@@ -1,2 +1,0 @@
-PBusinessConfig = {}
-local config = PBusinessConfig
