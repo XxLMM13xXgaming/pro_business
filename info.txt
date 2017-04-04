@@ -1,4 +1,0 @@
-Data structure:
-
-Player Database: (SID, Name)
-Creating business: {Name, OwnerSID, Description, Color, StartingFunds }
