@@ -5,6 +5,8 @@ util.AddNetworkString("PBusinessCreateBusiness")
 util.AddNetworkString("PBusinessOpenControlPanel")
 util.AddNetworkString("PBusinessOpenBusinessMenu")
 
+local plymeta = FindMetaTable("Player")
+
 PBusiness.NotifySystem = function(ply, type, message)
     if isstring(type) then
         if type == "error" then messagecolor = Color(255,0,0) type = 0 elseif type == "generic" then messagecolor = Color(0,0,255) type = 1 elseif type == "success" then messagecolor = Color(0,255,0) type = 2 else messagecolor = Color(0,0,255) type = 1 end
@@ -74,19 +76,30 @@ PBusiness.EscapeString = function(string)
     end
 end
 
-PBusiness.QueryDatabase = function(thequery, queryid)
-    if PBusiness.ServerQuerys == nil then PBusiness.ServerQuerys = {} end
+PBusiness.QueryDatabase = function(thequery, callback)
+    if thequery == nil then return end
+    if callback == nil then return end
+    if PBusiness.MySQL == nil then
+        PBusiness.ConnectToDatabase()
+    end
     if PBusiness.Config.SavingMethod == "tmysql4" then
         PBusiness.MySQL:Query(thequery, function(result)
-        if result[1].status == false then PBusiness.NotifySystem("staff", 0, "MySQL error! Please fix mysql connection! (" .. result[1].error .. ")") return end
-            table.insert(PBusiness.ServerQuerys,{queryid, thequery, result})
+            if result[1].status then
+                callback(true, result)
+            else
+                callback(false, result[1].error)
+            end
         end)
     elseif PBusiness.Config.SavingMethod == "mysqloo" then
         local query2 = PBusiness.MySQL:query(thequery)
-        query2.onSuccess = function(q) table.insert(PBusiness.ServerQuerys,{queryid, thequery, query2:getData()}) end
-        query2.onError = function(q,e) PBusiness.NotifySystem("staff", 0, "MySQL error! Please fix mysql connection! (" .. e .. ")") end
+        query2.onSuccess = function(q) callback(true, q:getData()) end
+        query2.onError = function(q,e) callback(false, e) end
         query2:start()
     end
+end
+
+function plymeta:PBusinessHasBusiness()
+    return self:Nick()
 end
 
 hook.Add("PlayerSay","PBusinessPlayerSay",function(ply, text)
@@ -96,19 +109,20 @@ hook.Add("PlayerSay","PBusinessPlayerSay",function(ply, text)
         PBusiness.QueryDatabase("SELECT * FROM players WHERE sid=" .. ply:SteamID64(), PBusinessCreateBusinessqueryid)
         timer.Create( "PBusinessQuery" .. PBusinessCreateBusinessqueryid, 1, 0, function()
             for k, v in pairs(PBusiness.ServerQuerys) do
-                if v[1] == PBusinessCreateBusinessqueryid then
-                    timer.Remove( "PBusinessQuery" .. PBusinessCreateBusinessqueryid)
-                    local plycurrzone = ply:GetCurrentZone()
-                    if !istable(v[3][1]) then
-                        if plycurrzone != nil and plycurrzone.class == "Business Buildings" then
-                            net.Start("PBusinessOpenCreateMenu")
-                            net.Send(ply)
-                        else
-                            PBusiness.NotifySystem(ply, "error", "You can not start a business here! Find a office/wearhouse!")
-                        end
-                    else
-                        PBusiness.NotifySystem(ply, "error", "You either own or are a part of a business! Please go to the business control panel by typing !business")
-                    end
+                if v[1] != PBusinessCreateBusinessqueryid then
+                    return
+                end
+                timer.Remove( "PBusinessQuery" .. PBusinessCreateBusinessqueryid)
+                local plycurrzone = ply:GetCurrentZone()
+                if istable(v[3][1]) then
+                    PBusiness.NotifySystem(ply, "error", "You either own or are a part of a business! Please go to the business control panel by typing !business")
+                    return
+                end
+                if plycurrzone != nil and plycurrzone.class == "Business Buildings" then
+                    net.Start("PBusinessOpenCreateMenu")
+                    net.Send(ply)
+                else
+                    PBusiness.NotifySystem(ply, "error", "You can not start a business here! Find a office/wearhouse!")
                 end
             end
         end)
@@ -121,17 +135,43 @@ hook.Add("PlayerSay","PBusinessPlayerSay",function(ply, text)
             for k, v in pairs(PBusiness.ServerQuerys) do
                 if v[1] == PBusinessCreateBusinessqueryid then
                     timer.Remove( "PBusinessQuery" .. PBusinessCreateBusinessqueryid)
-                    if istable(v[3][1]) then
-                        net.Start("PBusinessOpenBusinessMenu")
-                        net.Send(ply)
-                    else
+                    if !istable(v[3][1]) then
                         PBusiness.NotifySystem(ply, "error", "You do not own a business... Type !createbusiness to create a business!")
+                        return
                     end
+                    PBusiness.QueryDatabase("SELECT * FROM players WHERE sid=" .. ply:SteamID64(), PBusinessCreateBusinessqueryid .. 1)
+
+                    net.Start("PBusinessOpenBusinessMenu")
+                    net.Send(ply)
                 end
             end
         end)
         return ''
     end
+end)
+
+hook.Add("PBusinessConnectedToDatabase","PBusinessConnectedToDatabaseCreateTable",function()
+    PBusiness.Players = {}
+    PBusiness.Businesses = {}
+    PBusiness.QueryDatabase("SELECT * FROM players", function(ran, result)
+        if !ran then
+            PBusiness.NotifySystem("console", "error", "MySQl error: " .. result)
+        else
+            for k, v in pairs(result) do
+                table.insert(PBusiness.Players,#PBusiness.Players + 1,v)
+                print("Aye")
+            end
+        end
+    end)
+    PBusiness.QueryDatabase("SELECT * FROM businesses", function(ran, result)
+        if !ran then
+            PBusiness.NotifySystem("console", "error", "MySQl error: " .. result)
+        else
+            for k, v in pairs(result) do
+                table.insert(PBusiness.Businesses,#PBusiness.Businesses + 1,v)
+            end
+        end
+    end)
 end)
 
 net.Receive("PBusinessCreateBusiness",function(len, ply)
@@ -159,5 +199,10 @@ net.Receive("PBusinessCreateBusiness",function(len, ply)
 end)
 
 concommand.Add("pbtest",function(ply)
-    print(PBusiness.EscapeString(ply:Nick()))
+    PrintTable(PBusiness.Players)
+    PrintTable(PBusiness.Businesses)
+end)
+
+concommand.Add("pbtest2",function(ply)
+    PBusiness.ConnectToDatabase()
 end)

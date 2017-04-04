@@ -163,6 +163,7 @@ function PBusinessPayments(bname, bcat)
 end
 
 net.Receive("PBusinessOpenBusinessMenu",function()
+
 	local DFrame = vgui.Create( "DFrame" )
 	DFrame:SetSize( 500, 200 )
 	DFrame:SetTitle( "" )
@@ -172,7 +173,7 @@ net.Receive("PBusinessOpenBusinessMenu",function()
 	DFrame:MakePopup()
 	PBusinessDarkThemeMain(DFrame, "Business control panel")
 
-	local InfoText = {"Welcome to the business control panel!", "If you are not inside your business office/wearhouse you will get less options!"}
+	local InfoText = {"Welcome to the business control panel!", "If you are not inside your business office/wearhouse you will get less options!", "", "", "Business Net Worth: "}
 	local InfoTextPos = 40
 	for k, v in pairs(InfoText) do
 		local InfoTextLbl = vgui.Create("DLabel",DFrame)
