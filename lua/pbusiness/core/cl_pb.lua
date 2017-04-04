@@ -116,7 +116,6 @@ net.Receive("PBusinessOpenCreateMenu",function()
 end)
 
 function PBusinessPayments(bname, bcat)
-	PrintTable(LocalPlayer():GetCurrentZone())
 	local DFrame = vgui.Create( "DFrame" )
 	DFrame:SetSize( 500, 200 )
 	DFrame:SetTitle( "" )
@@ -126,12 +125,24 @@ function PBusinessPayments(bname, bcat)
 	DFrame:MakePopup()
 	PBusinessDarkThemeMain(DFrame, "Create a business")
 
-	local InfoText = vgui.Create("DLabel",DFrame)
-	InfoText:SetPos(0, 0)
-	InfoText:SetSize(DFrame:GetWide(), DFrame:GetTall())
-	InfoText:SetText("\n\n\nBefore we can make your business registered you will have to deal with payments...\nThere are a few costs of running a business but\nsoon you will be making some money! So lets finish this up!\n\n\nYour business will be located in this " .. LocalPlayer():GetCurrentZone().BuildName .. " for " .. DarkRP.formatMoney(LocalPlayer():GetCurrentZone().BuildCost) .. "!\nYou will also need to pay " .. DarkRP.formatMoney(PBusiness.Config.PaymentToStartBusiness) .. " for a startup fee...")
-	InfoText:SetFont("PBusinessLabelFont")
-	InfoText:SetContentAlignment( 8 )
+	local InfoText = {
+		"Before we can make your business registered you will have to deal with payments...",
+		"There are a few costs of running a business but",
+		"soon you will be making some money! So lets finish this up!",
+		"Your business will be located in this " .. LocalPlayer():GetCurrentZone().BuildName .. " for " .. DarkRP.formatMoney(LocalPlayer():GetCurrentZone().BuildCost) .. "!",
+		"You will also need to pay " .. DarkRP.formatMoney(PBusiness.Config.PaymentToStartBusiness) .. " for a startup fee..."
+	}
+	local InfoTextPos = 40
+
+	for k, v in pairs(InfoText) do
+		local InfoTextLbl = vgui.Create("DLabel",DFrame)
+		InfoTextLbl:SetPos(0, InfoTextPos)
+		InfoTextLbl:SetSize(DFrame:GetWide(), 20)
+		InfoTextLbl:SetText(v)
+		InfoTextLbl:SetFont("PBusinessLabelFont")
+		InfoTextLbl:SetContentAlignment( 8 )
+		InfoTextPos = InfoTextPos + 15
+	end
 
 	local CarryOn = vgui.Create("DButton", DFrame)
 	CarryOn:SetPos(20, DFrame:GetTall() - 30)
@@ -141,7 +152,7 @@ function PBusinessPayments(bname, bcat)
 	CarryOn.DoClick = function()
 		if LocalPlayer():getDarkRPVar("money") >= LocalPlayer():GetCurrentZone().BuildCost + PBusiness.Config.PaymentToStartBusiness then
 			net.Start("PBusinessCreateBusiness")
-			net.WriteTable({bname, bcat})
+				net.WriteTable({bname, bcat})
 			net.SendToServer()
 			DFrame:Close()
 		else
@@ -150,6 +161,32 @@ function PBusinessPayments(bname, bcat)
 		end
 	end
 end
+
+net.Receive("PBusinessOpenBusinessMenu",function()
+	local DFrame = vgui.Create( "DFrame" )
+	DFrame:SetSize( 500, 200 )
+	DFrame:SetTitle( "" )
+	DFrame:SetDraggable( true )
+	DFrame:ShowCloseButton( false )
+	DFrame:Center()
+	DFrame:MakePopup()
+	PBusinessDarkThemeMain(DFrame, "Business control panel")
+
+	local InfoText = {"Welcome to the business control panel!", "If you are not inside your business office/wearhouse you will get less options!"}
+	local InfoTextPos = 40
+	for k, v in pairs(InfoText) do
+		local InfoTextLbl = vgui.Create("DLabel",DFrame)
+		InfoTextLbl:SetPos(0, InfoTextPos)
+		InfoTextLbl:SetSize(DFrame:GetWide(), 20)
+		InfoTextLbl:SetText(v)
+		InfoTextLbl:SetFont("PBusinessLabelFont")
+		InfoTextLbl:SetContentAlignment( 8 )
+		InfoTextPos = InfoTextPos + 15
+	end
+
+
+
+end)
 
 net.Receive("PBusinessNotifySystem",function()
 	local type = net.ReadFloat()

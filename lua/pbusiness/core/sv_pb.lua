@@ -2,6 +2,8 @@
 util.AddNetworkString("PBusinessNotifySystem")
 util.AddNetworkString("PBusinessOpenCreateMenu")
 util.AddNetworkString("PBusinessCreateBusiness")
+util.AddNetworkString("PBusinessOpenControlPanel")
+util.AddNetworkString("PBusinessOpenBusinessMenu")
 
 PBusiness.NotifySystem = function(ply, type, message)
     if isstring(type) then
@@ -46,9 +48,9 @@ end
 
 PBusiness.EscapeString = function(string)
     if isstring(string) and PBusiness.Config.SavingMethod == "tmysql4" then
-        PBusiness.MySQL:Escape(string)
+        return PBusiness.MySQL:Escape(string)
     elseif isstring(string) and PBusiness.Config.SavingMethod == "mysqloo" then
-        PBusiness.MySQL:escape(string)
+        return PBusiness.MySQL:escape(string)
     elseif istable(string) and PBusiness.Config.SavingMethod == "mysqloo" then
         local newtable = {}
         for k, v in pairs(string) do
@@ -89,13 +91,45 @@ end
 
 hook.Add("PlayerSay","PBusinessPlayerSay",function(ply, text)
     if text:lower():match("[!/:.]createbusiness") then
-        local plycurrzone = ply:GetCurrentZone()
-        if plycurrzone != nil and plycurrzone.class == "Business Buildings" then
-            net.Start("PBusinessOpenCreateMenu")
-            net.Send(ply)
-        else
-            PBusiness.NotifySystem(ply, "error", "You can not start a business here! Find a office/wearhouse!")
-        end
+        PBusiness.NotifySystem(ply, "generic", "Loading...")
+        local PBusinessCreateBusinessqueryid = math.random(0,9999)
+        PBusiness.QueryDatabase("SELECT * FROM players WHERE sid=" .. ply:SteamID64(), PBusinessCreateBusinessqueryid)
+        timer.Create( "PBusinessQuery" .. PBusinessCreateBusinessqueryid, 1, 0, function()
+            for k, v in pairs(PBusiness.ServerQuerys) do
+                if v[1] == PBusinessCreateBusinessqueryid then
+                    timer.Remove( "PBusinessQuery" .. PBusinessCreateBusinessqueryid)
+                    local plycurrzone = ply:GetCurrentZone()
+                    if !istable(v[3][1]) then
+                        if plycurrzone != nil and plycurrzone.class == "Business Buildings" then
+                            net.Start("PBusinessOpenCreateMenu")
+                            net.Send(ply)
+                        else
+                            PBusiness.NotifySystem(ply, "error", "You can not start a business here! Find a office/wearhouse!")
+                        end
+                    else
+                        PBusiness.NotifySystem(ply, "error", "You either own or are a part of a business! Please go to the business control panel by typing !business")
+                    end
+                end
+            end
+        end)
+        return ''
+    elseif text:lower():match("[!/:.]business") then
+        PBusiness.NotifySystem(ply, "generic", "Loading...")
+        local PBusinessCreateBusinessqueryid = math.random(0,9999)
+        PBusiness.QueryDatabase("SELECT * FROM players WHERE sid=" .. ply:SteamID64(), PBusinessCreateBusinessqueryid)
+        timer.Create( "PBusinessQuery" .. PBusinessCreateBusinessqueryid, 1, 0, function()
+            for k, v in pairs(PBusiness.ServerQuerys) do
+                if v[1] == PBusinessCreateBusinessqueryid then
+                    timer.Remove( "PBusinessQuery" .. PBusinessCreateBusinessqueryid)
+                    if istable(v[3][1]) then
+                        net.Start("PBusinessOpenBusinessMenu")
+                        net.Send(ply)
+                    else
+                        PBusiness.NotifySystem(ply, "error", "You do not own a business... Type !createbusiness to create a business!")
+                    end
+                end
+            end
+        end)
         return ''
     end
 end)
@@ -103,17 +137,21 @@ end)
 net.Receive("PBusinessCreateBusiness",function(len, ply)
     local infogiven = PBusiness.EscapeString(net.ReadTable())
     local PBusinessCreateBusinessqueryid = math.random(0,9999)
-    PBusiness.NotifySystem(ply, "generic", "Lets just set some stuff up one moment...")
+    PBusiness.NotifySystem(ply, "generic", "Setting some stuff up one moment...")
     PBusiness.QueryDatabase("SELECT * FROM players WHERE sid=" .. ply:SteamID64(), PBusinessCreateBusinessqueryid)
     timer.Create( "PBusinessQuery" .. PBusinessCreateBusinessqueryid, 1, 0, function()
         for k, v in pairs(PBusiness.ServerQuerys) do
             if v[1] == PBusinessCreateBusinessqueryid then
                 timer.Remove( "PBusinessQuery" .. PBusinessCreateBusinessqueryid)
-                if !istable(v[2]) and ply:getDarkRPVar("money") >= ply:GetCurrentZone().BuildCost + PBusiness.Config.PaymentToStartBusiness and string.len(infogiven[1]) <= 25 and infogiven[2] == "Sales" or infogiven[2] == "Service" and ply:GetCurrentZone() != nil then
-                ply:addMoney(-ply:GetCurrentZone().BuildCost + PBusiness.Config.PaymentToStartBusiness)
-                PBusiness.QueryDatabase("INSERT INTO businesses (oid, bname, btype) VALUES ('" .. ply:SteamID64() .. "', '" .. infogiven[1] .. "', '" .. infogiven[2] .. "')", math.random())
-                PBusiness.QueryDatabase("INSERT INTO players (sid, laststeamname) VALUES ('" .. ply:SteamID64() .. "', '" .. PBusiness.EscapeString(ply:Nick()) .. "')", math.random())
-                PBusiness.NotifySystem(ply, "success", infogiven[1] .. " is now a registered business!")
+                if ply:getDarkRPVar("money") >= ply:GetCurrentZone().BuildCost + PBusiness.Config.PaymentToStartBusiness and string.len(infogiven[1]) <= 25 and infogiven[2] == "Sales" or infogiven[2] == "Service" and ply:GetCurrentZone() != nil and !istable(v[3]) then
+                    ply:addMoney(-ply:GetCurrentZone().BuildCost + PBusiness.Config.PaymentToStartBusiness)
+                    PBusiness.QueryDatabase("INSERT INTO businesses (oid, bname, btype) VALUES ('" .. ply:SteamID64() .. "', '" .. infogiven[1] .. "', '" .. infogiven[2] .. "')", math.random())
+                    PBusiness.QueryDatabase("INSERT INTO players (sid, laststeamname) VALUES ('" .. ply:SteamID64() .. "', '" .. PBusiness.EscapeString(ply:Nick()) .. "')", math.random())
+                    PBusiness.NotifySystem(ply, "success", infogiven[1] .. " is now a registered business!")
+                    timer.Simple(2, function()
+                        net.Start("PBusinessOpenControlPanel")
+                        net.Send(ply)
+                    end)
                 end
             end
         end
@@ -121,4 +159,5 @@ net.Receive("PBusinessCreateBusiness",function(len, ply)
 end)
 
 concommand.Add("pbtest",function(ply)
+    print(PBusiness.EscapeString(ply:Nick()))
 end)
