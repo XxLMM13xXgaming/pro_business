@@ -85,67 +85,57 @@ PBusiness.QueryDatabase = function(thequery, callback)
     if PBusiness.Config.SavingMethod == "tmysql4" then
         PBusiness.MySQL:Query(thequery, function(result)
             if result[1].status then
-                callback(true, result)
+                callback(true, result, nil)
             else
-                callback(false, result[1].error)
+                callback(false, result[1].error, result[1].lastid)
             end
         end)
     elseif PBusiness.Config.SavingMethod == "mysqloo" then
         local query2 = PBusiness.MySQL:query(thequery)
-        query2.onSuccess = function(q) callback(true, q:getData()) end
-        query2.onError = function(q,e) callback(false, e) end
+        query2.onSuccess = function(q) callback(true, q:getData(), q:lastInsert()) end
+        query2.onError = function(q,e) callback(false, e, nil) end
         query2:start()
     end
 end
 
-function plymeta:PBusinessHasBusiness()
-    return self:Nick()
+function plymeta:HasBusiness()
+    for k, v in pairs(PBusiness.Players) do
+        if v.sid == self:SteamID64() and v.bid != nil and v.bid != 0 then
+            return true
+        end
+    end
+    return false
+end
+
+function plymeta:GetBusinessRank()
+    for k, v in pairs(PBusiness.Players) do
+        if v.sid == self:SteamID64() then
+            return v.brank
+        end
+    end
+    return nil
 end
 
 hook.Add("PlayerSay","PBusinessPlayerSay",function(ply, text)
     if text:lower():match("[!/:.]createbusiness") then
-        PBusiness.NotifySystem(ply, "generic", "Loading...")
-        local PBusinessCreateBusinessqueryid = math.random(0,9999)
-        PBusiness.QueryDatabase("SELECT * FROM players WHERE sid=" .. ply:SteamID64(), PBusinessCreateBusinessqueryid)
-        timer.Create( "PBusinessQuery" .. PBusinessCreateBusinessqueryid, 1, 0, function()
-            for k, v in pairs(PBusiness.ServerQuerys) do
-                if v[1] != PBusinessCreateBusinessqueryid then
-                    return
-                end
-                timer.Remove( "PBusinessQuery" .. PBusinessCreateBusinessqueryid)
-                local plycurrzone = ply:GetCurrentZone()
-                if istable(v[3][1]) then
-                    PBusiness.NotifySystem(ply, "error", "You either own or are a part of a business! Please go to the business control panel by typing !business")
-                    return
-                end
-                if plycurrzone != nil and plycurrzone.class == "Business Buildings" then
-                    net.Start("PBusinessOpenCreateMenu")
-                    net.Send(ply)
-                else
-                    PBusiness.NotifySystem(ply, "error", "You can not start a business here! Find a office/wearhouse!")
-                end
+        if !ply:HasBusiness() then
+            local plycurrzone = ply:GetCurrentZone()
+            if plycurrzone != nil and plycurrzone.class == "Business Buildings" then
+                net.Start("PBusinessOpenCreateMenu")
+                net.Send(ply)
+            else
+                PBusiness.NotifySystem(ply, "error", "You can not start a business here! Find a office/wearhouse!")
             end
-        end)
+        else
+            PBusiness.NotifySystem(ply, "error", "You either own or are a part of a business! Please go to the business control panel by typing !business")
+        end
         return ''
     elseif text:lower():match("[!/:.]business") then
-        PBusiness.NotifySystem(ply, "generic", "Loading...")
-        local PBusinessCreateBusinessqueryid = math.random(0,9999)
-        PBusiness.QueryDatabase("SELECT * FROM players WHERE sid=" .. ply:SteamID64(), PBusinessCreateBusinessqueryid)
-        timer.Create( "PBusinessQuery" .. PBusinessCreateBusinessqueryid, 1, 0, function()
-            for k, v in pairs(PBusiness.ServerQuerys) do
-                if v[1] == PBusinessCreateBusinessqueryid then
-                    timer.Remove( "PBusinessQuery" .. PBusinessCreateBusinessqueryid)
-                    if !istable(v[3][1]) then
-                        PBusiness.NotifySystem(ply, "error", "You do not own a business... Type !createbusiness to create a business!")
-                        return
-                    end
-                    PBusiness.QueryDatabase("SELECT * FROM players WHERE sid=" .. ply:SteamID64(), PBusinessCreateBusinessqueryid .. 1)
-
-                    net.Start("PBusinessOpenBusinessMenu")
-                    net.Send(ply)
-                end
-            end
-        end)
+        if ply:HasBusiness() then
+            PBusiness.NotifySystem(ply, "generic", "Please purchase a desk!")
+        else
+            PBusiness.NotifySystem(ply, "error", "You do not own a business... Type !createbusiness to create a business!")
+        end
         return ''
     end
 end)
@@ -159,7 +149,6 @@ hook.Add("PBusinessConnectedToDatabase","PBusinessConnectedToDatabaseCreateTable
         else
             for k, v in pairs(result) do
                 table.insert(PBusiness.Players,#PBusiness.Players + 1,v)
-                print("Aye")
             end
         end
     end)
@@ -174,28 +163,51 @@ hook.Add("PBusinessConnectedToDatabase","PBusinessConnectedToDatabaseCreateTable
     end)
 end)
 
+hook.Add("PlayerInitialSpawn","PBusinessPlayerInitialSpawn",function(ply)
+    local ishere = false
+    for k, v in pairs(PBusiness.Players) do
+        if v.sid == ply:SteamID64() then
+            ishere = true
+        end
+    end
+    if !ishere then
+        PBusiness.QueryDatabase("INSERT INTO players (sid, laststeamname) VALUES ('" .. ply:SteamID64() .. "', '" .. PBusiness.EscapeString(ply:Nick()) .. "')", function(ran, result)
+            if !ran then
+                PBusiness.NotifySystem("console", "error", "MySQl error: " .. result)
+            end
+            table.insert(PBusiness.Players,#PBusiness.Players + 1,{sid = ply:SteamID64(), laststeamname = ply:Nick()})
+        end)
+    end
+end)
+
 net.Receive("PBusinessCreateBusiness",function(len, ply)
     local infogiven = PBusiness.EscapeString(net.ReadTable())
-    local PBusinessCreateBusinessqueryid = math.random(0,9999)
     PBusiness.NotifySystem(ply, "generic", "Setting some stuff up one moment...")
-    PBusiness.QueryDatabase("SELECT * FROM players WHERE sid=" .. ply:SteamID64(), PBusinessCreateBusinessqueryid)
-    timer.Create( "PBusinessQuery" .. PBusinessCreateBusinessqueryid, 1, 0, function()
-        for k, v in pairs(PBusiness.ServerQuerys) do
-            if v[1] == PBusinessCreateBusinessqueryid then
-                timer.Remove( "PBusinessQuery" .. PBusinessCreateBusinessqueryid)
-                if ply:getDarkRPVar("money") >= ply:GetCurrentZone().BuildCost + PBusiness.Config.PaymentToStartBusiness and string.len(infogiven[1]) <= 25 and infogiven[2] == "Sales" or infogiven[2] == "Service" and ply:GetCurrentZone() != nil and !istable(v[3]) then
-                    ply:addMoney(-ply:GetCurrentZone().BuildCost + PBusiness.Config.PaymentToStartBusiness)
-                    PBusiness.QueryDatabase("INSERT INTO businesses (oid, bname, btype) VALUES ('" .. ply:SteamID64() .. "', '" .. infogiven[1] .. "', '" .. infogiven[2] .. "')", math.random())
-                    PBusiness.QueryDatabase("INSERT INTO players (sid, laststeamname) VALUES ('" .. ply:SteamID64() .. "', '" .. PBusiness.EscapeString(ply:Nick()) .. "')", math.random())
-                    PBusiness.NotifySystem(ply, "success", infogiven[1] .. " is now a registered business!")
-                    timer.Simple(2, function()
-                        net.Start("PBusinessOpenControlPanel")
-                        net.Send(ply)
-                    end)
+    if !ply:HasBusiness() and ply:getDarkRPVar("money") >= ply:GetCurrentZone().BuildCost + PBusiness.Config.PaymentToStartBusiness and string.len(infogiven[1]) <= 25 and infogiven[2] == "Sales" or infogiven[2] == "Service" and ply:GetCurrentZone() != nil then
+        ply:addMoney(-ply:GetCurrentZone().BuildCost + PBusiness.Config.PaymentToStartBusiness)
+        PBusiness.QueryDatabase("INSERT INTO businesses (oid, bname, btype) VALUES ('" .. ply:SteamID64() .. "', '" .. infogiven[1] .. "', '" .. infogiven[2] .. "')", function(ran, result, lid)
+            if !ran then
+                PBusiness.NotifySystem("console", "error", "MySQl error: " .. result)
+                return
+            end
+            for k, v in pairs(PBusiness.Players) do
+                if v.sid == ply:SteamID64() then
+                    v.bid = lid
+                    v.brank = "ceo"
                 end
             end
-        end
-    end)
+            PBusiness.QueryDatabase("UPDATE players SET brank='ceo', bid='" .. lid .. "' WHERE sid=" .. ply:SteamID64(), function(upran, theresult)
+                if upran then
+                    print("Worked")
+                else
+                    print(theresult)
+                end
+            end)
+            PBusiness.QueryDatabase("INSERT INTO businesses (oid, bname, btype, networth) VALUES ('" .. ply:SteamID64() .. "', '" .. infogiven[1] .. "', '" .. infogiven[2] .. "', '0')")
+            table.insert(PBusiness.Businesses, #PBusiness.Businesses + 1, {id = lid, oid = ply:SteamID64(), bname = infogiven[1], btype = infogiven[2], networth = 0})
+        end)
+        PBusiness.NotifySystem(ply, "success", infogiven[1] .. " is now a registered business!")
+    end
 end)
 
 concommand.Add("pbtest",function(ply)
