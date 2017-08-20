@@ -58,7 +58,6 @@ if (SERVER) then
     MsgC(Color(255,255,255,255), "//            Pro Business Loaded!             //\n")
     MsgC(Color(255,255,255,255), "/////////////////////////////////////////////////\n")
 end
-
 if (CLIENT) then
     PBusiness = {} -- This will give us a table to localize some stuff!
     PBusiness.Config = {} -- This will give us a table to localize some stuff!

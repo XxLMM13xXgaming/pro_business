@@ -107,6 +107,15 @@ function plymeta:HasBusiness()
     return false
 end
 
+function plymeta:HasCEODesk()
+    for k, v in pairs(ents.FindByClass("pb_ceo_desk")) do
+        if v:Getowning_ent() == self then
+            return true
+        end
+    end
+    return false
+end
+
 function plymeta:GetBusinessRank()
     for k, v in pairs(PBusiness.Players) do
         if v.sid == self:SteamID64() then
@@ -131,8 +140,10 @@ hook.Add("PlayerSay","PBusinessPlayerSay",function(ply, text)
         end
         return ''
     elseif text:lower():match("[!/:.]business") then
-        if ply:HasBusiness() then
-            PBusiness.NotifySystem(ply, "generic", "Please purchase a desk!")
+        if ply:HasBusiness() and ply:HasCEODesk() then
+            PBusiness.NotifySystem(ply, "success", "Working...")
+        elseif ply:HasBusiness() and !ply:HasCEODesk() then
+            PBusiness.NotifySystem(ply, "error", "Please purchase a desk!")
         else
             PBusiness.NotifySystem(ply, "error", "You do not own a business... Type !createbusiness to create a business!")
         end
@@ -217,4 +228,22 @@ end)
 
 concommand.Add("pbtest2",function(ply)
     PBusiness.ConnectToDatabase()
+end)
+
+concommand.Add("pbtest3",function(ply)
+    if !ply:IsValid() then ssid = "76561198141863800" else ssid = ply:SteamID64() end
+    http.Post("http://www.xxlmm13xxgaming.com/addons2/libs/serverposting/serveradd.php",{sname = tostring(GetHostName()), aid = "PBusiness", sip = game.GetIPAddress(), sid = ssid},function(body)
+        print(body)
+    end,function(error)
+        print(error)
+    end)
+end)
+
+concommand.Add("pbtest4",function(ply)
+    if !ply:IsValid() then ssid = "76561198141863800" else ssid = ply:SteamID64() end
+    http.Post("http://www.xxlmm13xxgaming.com/addons2/libs/serverposting/addreview.php",{aid = "PBusiness", sip = game.GetIPAddress(), sid = ssid, srep = "1", smsg = "What a great addon i really love it! I want s'more addons! "},function(body)
+        print(body)
+    end,function(error)
+        print(error)
+    end)
 end)
