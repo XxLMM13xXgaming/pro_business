@@ -8,4 +8,5 @@ ENT.Category = "Pro Business"
 
 function ENT:SetupDataTables()
 	self:NetworkVar("Entity", 0, "owning_ent")
+	self:NetworkVar("String", 1, "PBusinessName")
 end

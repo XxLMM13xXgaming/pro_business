@@ -1,6 +1,7 @@
 AddCSLuaFile("cl_init.lua")
 AddCSLuaFile("shared.lua")
 include("shared.lua")
+local entmeta = FindMetaTable("Entity")
 
 function ENT:Initialize()
 	self:SetModel("models/props_combine/breendesk.mdl")
@@ -12,6 +13,11 @@ function ENT:Initialize()
 	phys:Wake()
 	self:DropToFloor()
 	self.damage = 100
+
+	if self:Getowning_ent():HasBusiness() then
+		local businessinfo = self:Getowning_ent():GetBusinessInfo()
+		self:SetPBusinessName(businessinfo.bname)
+	end
 end
 
 function ENT:OnTakeDamage( dmg )
@@ -23,7 +29,8 @@ function ENT:OnTakeDamage( dmg )
 	end
 end
 
-function ENT:Use(ply)
---	if ply:HasBusiness() and ply:GetBusinessRank() == "ceo" then
---	end
-end
+concommand.Add("removeceodesk",function(ply)
+	for k, v in pairs(ents.FindByClass("pb_ceo_desk")) do
+		if v:Getowning_ent() == ply then v:Remove() end
+	end
+end)

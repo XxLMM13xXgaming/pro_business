@@ -9,6 +9,7 @@ hook.Add("OnZoneCreated","PBusinessOnZoneCreated",function(zone,class,zoneID)
 	if class == "Business Buildings" then
 		zone.BuildName = "Standard Business Office"
 		zone.BuildCost = 100
+		zone.taken = false
 	end
 end)
 

@@ -1,6 +1,8 @@
 if (SERVER) then
-    PBusiness = {} -- This will give us a table to localize some stuff!
-    PBusiness.Config = {} -- This will give us a table to localize some stuff!
+    PBusiness = {}
+    PBusiness.Config = {}
+    PBusiness.Players = {} 
+    PBusiness.Businesses = {}
     MsgC(Color(255,255,255,255), "/////////////////////////////////////////////////\n")
     MsgC(Color(255,255,255,255), "//     Pro Business Loading... Created By:     //\n")
     MsgC(Color(255,255,255,255), "//            XxLMM13xXgaming - Lua            //\n")
@@ -53,7 +55,7 @@ if (SERVER) then
             MsgC(Color(255,255,255,255), "// " .. stringtoinput .. stringtoinputafter, Color(255,255,255,255), "//\n")
         end
     end
-    PBusiness.ConnectToDatabase()
+
     MsgC(Color(255,255,255,255), "/////////////////////////////////////////////////\n")
     MsgC(Color(255,255,255,255), "//            Pro Business Loaded!             //\n")
     MsgC(Color(255,255,255,255), "/////////////////////////////////////////////////\n")
