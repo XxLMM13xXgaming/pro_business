@@ -228,7 +228,7 @@ function entmeta:PBusinessBuildTableTopDerma(personal)
 							function( text ) end
 						)
 					end )
-					menu:AddOption( "Multiple choice", function() -- Gonna redo this later so i can optomize this ugly code
+					menu:AddOption( "Multiple choice", function() -- Gonna redo this later so i can optomize this ugly code. Yes i know its ugly right now i dont wanna hear it.
 						Derma_StringRequest(
 							"Application editor",
 							"What is the multiple choice question",
@@ -522,8 +522,6 @@ function ENT:Draw()
 end
 
 net.Receive("PBusinessSendCEODeskData",function()
-	local applications = net.ReadTable()
 	local application = net.ReadTable()
 	LocalPlayer().PBusinessApplication = application
-	LocalPlayer().PBusinessApplications = applications
 end)

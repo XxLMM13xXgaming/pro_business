@@ -19,10 +19,8 @@ function ENT:Initialize()
 	if self:Getowning_ent():HasBusiness() then
 		local businessinfo = self:Getowning_ent():GetBusinessInfo()
 		self:SetPBusinessName(businessinfo.bname)
-		self.PBusinessApplications = businessinfo.applications
 		self.PBusinessApplication = businessinfo.application
 		net.Start("PBusinessSendCEODeskData")
-			net.WriteTable(self.PBusinessApplications)
 			net.WriteTable(self.PBusinessApplication)
 		net.Send(self:Getowning_ent())
 	end
@@ -40,11 +38,8 @@ end
 net.Receive("PBusinessEditApplication",function(len, ply)
 	local thenewapp = net.ReadTable()
 	if ply:HasBusiness() then
-		print("Ran")
-		PrintTable(thenewapp)
 		ply:GetCEODesk().PBusinessApplication = thenewapp
 		net.Start("PBusinessSendCEODeskData")
-			net.WriteTable(ply:GetCEODesk().PBusinessApplications)
 			net.WriteTable(ply:GetCEODesk().PBusinessApplication)
 		net.Send(ply)
 	end

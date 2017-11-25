@@ -5,6 +5,7 @@ util.AddNetworkString("PBusinessCreateBusiness")
 util.AddNetworkString("PBusinessOpenBusinessMenu")
 util.AddNetworkString("PBusinessOpenCEOMenu")
 util.AddNetworkString("PBusinessBusinessChange")
+util.AddNetworkString("PBusinessOpenJobSearch")
 
 local plymeta = FindMetaTable("Player")
 
@@ -137,13 +138,13 @@ hook.Add("PlayerSay","PBusinessPlayerSay",function(ply, text)
         end
         return ''
     elseif text:lower():match("[!/:.]jobsearch") then
-        if ply:HasBusiness() then
-            PBusiness.NotifySystem(ply, "error", "You already have a job!")
-        else
-            net.Start("PBusinessOpenNewsPaper")
+--        if ply:HasBusiness() then
+--            PBusiness.NotifySystem(ply, "error", "You already have a job!")
+--        else
+            net.Start("PBusinessOpenJobSearch")
                 -- coming soon todo
             net.Send(ply)
-        end
+--        end
         return ''
     end
 end)
