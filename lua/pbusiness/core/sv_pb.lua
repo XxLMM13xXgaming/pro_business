@@ -136,6 +136,15 @@ hook.Add("PlayerSay","PBusinessPlayerSay",function(ply, text)
             PBusiness.NotifySystem(ply, "error", "You do not own a business... Type !createbusiness to create a business!")
         end
         return ''
+    elseif text:lower():match("[!/:.]jobsearch") then
+        if ply:HasBusiness() then
+            PBusiness.NotifySystem(ply, "error", "You already have a job!")
+        else
+            net.Start("PBusinessOpenNewsPaper")
+                -- coming soon todo
+            net.Send(ply)
+        end
+        return ''
     end
 end)
 
@@ -161,7 +170,6 @@ net.Receive("PBusinessBusinessChange",function(len, ply)
             for k, v in pairs(bv.employees) do
                 if v.player == ply and v.rank == "CEO" then
                     bv.bname = newname
---                    ply:GetCEODesk():ChangeData("name", newname)
                     ply:GetCEODesk():SetPBusinessName(newname)
                 end
             end
