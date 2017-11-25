@@ -144,7 +144,7 @@ net.Receive("PBusinessCreateBusiness",function(len, ply)
     PBusiness.NotifySystem(ply, "generic", "Setting some stuff up one moment...")
     if !ply:HasBusiness() and ply:getDarkRPVar("money") >= ply:GetCurrentZone().BuildCost + PBusiness.Config.PaymentToStartBusiness and string.len(infogiven[1]) <= 25 and infogiven[2] == "Sales" or infogiven[2] == "Service" and ply:GetCurrentZone() != nil then
         ply:addMoney(-(ply:GetCurrentZone().BuildCost + PBusiness.Config.PaymentToStartBusiness))
-        table.insert(PBusiness.Businesses, #PBusiness.Businesses + 1, {id = #PBusiness.Businesses + 1, employees = {{player = ply, rank = "CEO"}}, bname = infogiven[1], btype = infogiven[2], networth = 0})
+        table.insert(PBusiness.Businesses, #PBusiness.Businesses + 1, {id = #PBusiness.Businesses + 1, employees = {{player = ply, rank = "CEO"}}, bname = infogiven[1], btype = infogiven[2], networth = 0, applications = {}, application = {}})
         local plycurrzone = ply:GetCurrentZone()
         plycurrzone.taken = true
         PBusiness.NotifySystem(ply, "success", infogiven[1] .. " is now a registered business!")

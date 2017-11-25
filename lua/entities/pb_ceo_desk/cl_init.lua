@@ -46,11 +46,301 @@ function entmeta:PBusinessBuildTableTopDerma(personal)
 		local InfoText = vgui.Create("DLabel", DFrame)
 		InfoText:SetPos(20, 60)
 		InfoText:SetSize(DFrame:GetWide() - 40, DFrame:GetTall() - 70)
-		InfoText:SetText("On this page you can hire a new employee!")
+		InfoText:SetText("On this page you can hire employees and make an application form!")
 		InfoText:SetContentAlignment(7)
 		InfoText:SetWrap(true)
 		InfoText:SetFont("DermaLarge")
 
+		local EditAppName = vgui.Create("DLabel", DFrame)
+		EditAppName:SetPos(20, 110)
+		EditAppName:SetText("Click to the right to make/edit your application...")
+		EditAppName:SetFont("DermaLarge")
+		timer.Simple(.1,function()
+			EditAppName:SizeToContents()
+			local editappMat = Material("icon16/page_white_edit.png")
+			local EditAppBtn = vgui.Create( "DButton", DFrame )
+			EditAppBtn:SetPos( EditAppName:GetWide() + 30, 120 )
+			EditAppBtn:SetSize( 16, 16 )
+			EditAppBtn:SetText("")
+			EditAppBtn.Paint = function( s, w, h )
+				surface.SetMaterial( editappMat )
+				surface.SetDrawColor( color_white )
+				surface.DrawTexturedRect( 0, 0, w, h )
+			end
+			EditAppBtn.DoClick = function()
+				newappstuff = LocalPlayer().PBusinessApplication or {}
+
+				local AppMakeForm = vgui.Create("DFrame")
+				AppMakeForm:SetSize(500,700)
+				AppMakeForm:MakePopup()
+				AppMakeForm:Center()
+				AppMakeForm:ShowCloseButton(false)
+				AppMakeForm:SetTitle("This page will look better for people applying and in the future")
+
+				local AppList = vgui.Create( "DPanelList", AppMakeForm )
+				AppList:Dock(FILL)
+				AppList:SetSpacing( 2 )
+				AppList:EnableVerticalScrollbar( true )
+				AppList.VBar.Paint = function( s, w, h )
+					draw.RoundedBox( 4, 3, 13, 8, h-24, Color(0,0,0,70))
+				end
+				AppList.VBar.btnUp.Paint = function( s, w, h ) end
+				AppList.VBar.btnDown.Paint = function( s, w, h ) end
+				AppList.VBar.btnGrip.Paint = function( s, w, h )
+					draw.RoundedBox( 4, 5, 0, 4, h + 22, Color(0,0,0,70))
+				end
+
+				for k, v in pairs(newappstuff) do
+					if v[1] == "ste" then
+						AppOppSTE = vgui.Create("DFrame")
+						AppOppSTE:SetSize(AppList:GetWide(), 50)
+						AppOppSTE:ShowCloseButton(false)
+						AppOppSTE:SetTitle("")
+						AppOppSTE.Paint = function(s, w, h)
+							draw.RoundedBox(0,0,0,w,h,Color(45,45,45,150))
+						end
+
+						local AppQuestion = vgui.Create("DLabel", AppOppSTE)
+						AppQuestion:SetPos(10, 0)
+						AppQuestion:SetSize(200, 20)
+						AppQuestion:SetText(v[2])
+
+						local AppTextEntryAnswer = vgui.Create("DTextEntry", AppOppSTE)
+						AppTextEntryAnswer:SetPos(10, 20)
+						AppTextEntryAnswer:SetSize(200, 20)
+						AppTextEntryAnswer:SetValue("Answer would be here")
+
+						local removeappopp = vgui.Create("DButton", AppOppSTE)
+						removeappopp:SetPos(420, AppOppSTE:GetTall() - 30)
+						removeappopp:SetSize(60, 20)
+						removeappopp:SetText("Remove")
+						removeappopp.DoClick = function()
+							table.remove(newappstuff,k)
+							AppOppSTE:Remove()
+						end
+						AppList:AddItem(AppOppSTE)
+					elseif v[1] == "lte" then
+						AppOppLTE = vgui.Create("DFrame")
+						AppOppLTE:SetSize(AppList:GetWide(), 80)
+						AppOppLTE:ShowCloseButton(false)
+						AppOppLTE:SetTitle("")
+						AppOppLTE.Paint = function(s, w, h)
+							draw.RoundedBox(0,0,0,w,h,Color(45,45,45,150))
+						end
+
+						local AppQuestion = vgui.Create("DLabel", AppOppLTE)
+						AppQuestion:SetPos(10, 0)
+						AppQuestion:SetSize(200, 20)
+						AppQuestion:SetText(v[2])
+
+						local AppTextEntryAnswer = vgui.Create("DTextEntry", AppOppLTE)
+						AppTextEntryAnswer:SetPos(10, 20)
+						AppTextEntryAnswer:SetSize(200, 50)
+						AppTextEntryAnswer:SetMultiline(true)
+						AppTextEntryAnswer:SetValue("Answer would be here")
+
+						local removeappopp = vgui.Create("DButton", AppOppLTE)
+						removeappopp:SetPos(420, AppOppLTE:GetTall() - 30)
+						removeappopp:SetSize(60, 20)
+						removeappopp:SetText("Remove")
+						removeappopp.DoClick = function()
+							table.remove(newappstuff,k)
+							AppOppLTE:Remove()
+						end
+						AppList:AddItem(AppOppLTE)
+					elseif v[1] == "mc" then
+						AppOppMC = vgui.Create("DFrame")
+						AppOppMC:SetSize(AppList:GetWide(), 150)
+						AppOppMC:ShowCloseButton(false)
+						AppOppMC:SetTitle("")
+						AppOppMC.Paint = function(s, w, h)
+							draw.RoundedBox(0,0,0,w,h,Color(45,45,45,150))
+						end
+
+						local AppQuestion = vgui.Create("DLabel", AppOppMC)
+						AppQuestion:SetPos(10, 0)
+						AppQuestion:SetSize(200, 20)
+						AppQuestion:SetText(v[2])
+
+						local AppCone = vgui.Create("DLabel", AppOppMC)
+						AppCone:SetPos(10, 50)
+						AppCone:SetSize(200, 20)
+						AppCone:SetText(v[3])
+
+						local AppCtwo = vgui.Create("DLabel", AppOppMC)
+						AppCtwo:SetPos(10, 70)
+						AppCtwo:SetSize(200, 20)
+						AppCtwo:SetText(v[4])
+
+						local AppCthree = vgui.Create("DLabel", AppOppMC)
+						AppCthree:SetPos(10, 90)
+						AppCthree:SetSize(200, 20)
+						AppCthree:SetText(v[5])
+
+						local AppCfour = vgui.Create("DLabel", AppOppMC)
+						AppCfour:SetPos(10, 110)
+						AppCfour:SetSize(200, 20)
+						AppCfour:SetText(v[6])
+
+						local AppRA = vgui.Create("DLabel", AppOppMC)
+						AppRA:SetPos(10, 130)
+						AppRA:SetSize(200, 20)
+						AppRA:SetText("Right answer: " .. v[7])
+
+						local removeappopp = vgui.Create("DButton", AppOppMC)
+						removeappopp:SetPos(420, AppOppMC:GetTall() - 30)
+						removeappopp:SetSize(60, 20)
+						removeappopp:SetText("Remove")
+						removeappopp.DoClick = function()
+							table.remove(newappstuff,k)
+							AppOppMC:Remove()
+						end
+						AppList:AddItem(AppOppMC)
+					end
+				end
+
+				local CreateNewField = vgui.Create("DButton")
+				CreateNewField:SetSize(AppList:GetWide(), 20)
+				CreateNewField:SetText("Add New Field")
+				CreateNewField.DoClick = function()
+					local menu = DermaMenu()
+					menu:AddOption( "Small text entry", function()
+						Derma_StringRequest(
+							"Application editor",
+							"What is the small text entry question",
+							"",
+							function( text )
+								table.insert(newappstuff,#newappstuff + 1,{"ste", text})
+								chat.AddText(Color(255,0,0), "Hit close editor to see the changes!")
+							end,
+							function( text ) end
+						)
+					end )
+					menu:AddOption( "Large text entry", function()
+						Derma_StringRequest(
+							"Application editor",
+							"What is the Large text entry question",
+							"",
+							function( text )
+								table.insert(newappstuff,#newappstuff + 1,{"lte", text})
+								chat.AddText(Color(255,0,0), "Hit close editor to see the changes!")
+							end,
+							function( text ) end
+						)
+					end )
+					menu:AddOption( "Multiple choice", function() -- Gonna redo this later so i can optomize this ugly code
+						Derma_StringRequest(
+							"Application editor",
+							"What is the multiple choice question",
+							"",
+							function( mcq )
+								Derma_StringRequest(
+									"Application editor",
+									"What is one possible answer... After entering four you will be able to pick what one is the correct answer and we will randomize the test!",
+									"",
+									function( cone )
+										Derma_StringRequest(
+											"Application editor",
+											"What is one possible answer... After entering four you will be able to pick what one is the correct answer and we will randomize the test!",
+											"",
+											function( ctwo )
+												Derma_StringRequest(
+													"Application editor",
+													"What is one possible answer... After entering four you will be able to pick what one is the correct answer and we will randomize the test!",
+													"",
+													function( cthree )
+														Derma_StringRequest(
+															"Application editor",
+															"What is one possible answer... After entering four you will be able to pick what one is the correct answer and we will randomize the test!",
+															"",
+															function( cfour )
+																Derma_Query( "What is the correct answer...\n1.) " .. cone .. "\n2.) " .. ctwo .. "\n3.) " .. cthree .. "\n4.) " .. cfour, "Application editor",
+																"#1", function()
+																	table.insert(newappstuff,#newappstuff + 1,{"mc", mcq, cone, ctwo, cthree, cfour, 1})
+																	chat.AddText(Color(255,0,0), "Hit close editor to see the changes!")
+																end,
+																"#2", function()
+																	table.insert(newappstuff,#newappstuff + 1,{"mc", mcq, cone, ctwo, cthree, cfour, 2})
+																	chat.AddText(Color(255,0,0), "Hit close editor to see the changes!")
+																end,
+																"#3", function()
+																	table.insert(newappstuff,#newappstuff + 1,{"mc", mcq, cone, ctwo, cthree, cfour, 3})
+																	chat.AddText(Color(255,0,0), "Hit close editor to see the changes!")
+																end,
+																"#4", function()
+																	table.insert(newappstuff,#newappstuff + 1,{"mc", mcq, cone, ctwo, cthree, cfour, 4})
+																	chat.AddText(Color(255,0,0), "Hit close editor to see the changes!")
+																end)
+															end,
+															function( text ) end
+														)
+													end,
+													function( text ) end
+												)
+											end,
+											function( text ) end
+										)
+									end,
+									function( text ) end
+								)
+							end,
+							function( text ) end
+						)
+					end )
+					menu:AddOption( "Close", function() end )
+					menu:Open()
+				end
+
+				local EndEditing = vgui.Create("DButton")
+				EndEditing:SetSize(AppList:GetWide(), 20)
+				EndEditing:SetText("Close editor")
+				EndEditing.DoClick = function()
+					net.Start("PBusinessEditApplication")
+						net.WriteTable(newappstuff)
+					net.SendToServer()
+					AppMakeForm:Close()
+				end
+				AppList:AddItem( CreateNewField )
+				AppList:AddItem( EndEditing )
+			end
+		end)
+
+		local ViewApps = vgui.Create("DButton", DFrame)
+		ViewApps:SetSize(500, 20)
+		ViewApps:Center()
+		ViewApps:SetText("Click here to view job applications!")
+		ViewApps:SetTextColor(Color(0,0,0))
+		ViewApps.Paint = function( s, w, h )
+			s:SetFont("DermaLarge")
+		end
+		ViewApps.DoClick = function()
+			ViewApps:Remove()
+
+			local AppList = vgui.Create( "DListView", DFrame )
+			AppList:SetPos(20, 150)
+			AppList:SetSize(500, 200)
+			AppList:SetMultiSelect( false )
+			AppList:AddColumn( "Applicant Name" )
+			AppList:AddColumn( "Job Compatibility" )
+			AppList:AddColumn( "Application Date" )
+--			for k, v in pairs() do
+--				AppList:AddLine( "PesterChum", "2mb" )
+--			end
+		end
+
+		local backMat = Material("icon16/arrow_left.png")
+		local BackBtn = vgui.Create( "DButton", DFrame )
+		BackBtn:SetPos( DFrame:GetWide() - 25, DFrame:GetTall() - 25 )
+		BackBtn:SetSize( 16, 16 )
+		BackBtn:SetText("")
+		BackBtn.Paint = function( s, w, h )
+		    surface.SetMaterial( backMat )
+		    surface.SetDrawColor( color_white )
+		    surface.DrawTexturedRect( 0, 0, w, h )
+		end
+		BackBtn.DoClick = function()
+			gobackapage()
+		end
 	end
 
 	local function showbeditpage()
@@ -198,6 +488,7 @@ function entmeta:PBusinessBuildTableTopDerma(personal)
 end
 
 function ENT:Initialize()
+	self.DataKept = {}
 	if LocalPlayer() != self:Getowning_ent() then
 		self:PBusinessBuildTableTopDerma("nonceo")
 	end
@@ -229,3 +520,10 @@ function ENT:Draw()
 		self.frame:Paint3D2D() -- here paint the frame
 	vgui.End3D2D()
 end
+
+net.Receive("PBusinessSendCEODeskData",function()
+	local applications = net.ReadTable()
+	local application = net.ReadTable()
+	LocalPlayer().PBusinessApplication = application
+	LocalPlayer().PBusinessApplications = applications
+end)
