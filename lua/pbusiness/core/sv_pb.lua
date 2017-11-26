@@ -6,6 +6,10 @@ util.AddNetworkString("PBusinessOpenBusinessMenu")
 util.AddNetworkString("PBusinessOpenCEOMenu")
 util.AddNetworkString("PBusinessBusinessChange")
 util.AddNetworkString("PBusinessOpenJobSearch")
+util.AddNetworkString("PBusinessAddBusinessToClient")
+util.AddNetworkString("PBusinessUpdateBusinessToClient")
+util.AddNetworkString("PBMailCompose")
+util.AddNetworkString("PBusinessSubmitApplication")
 
 local plymeta = FindMetaTable("Player")
 
@@ -58,7 +62,7 @@ function plymeta:HasBusiness()
             end
         end
     end
-    return false
+    return false -- Gotta change to
 end
 
 function plymeta:IsBusinessCEO()
@@ -99,6 +103,12 @@ function plymeta:GetCEODesk()
         end
     end
     return false
+end
+
+function PBusinessUpdateBusinesses()
+    net.Start("PBusinessUpdateBusinessToClient")
+        net.WriteTable(PBusiness.Businesses)
+    net.Broadcast()
 end
 
 hook.Add("PlayerSay","PBusinessPlayerSay",function(ply, text)
@@ -158,6 +168,9 @@ net.Receive("PBusinessCreateBusiness",function(len, ply)
         local plycurrzone = ply:GetCurrentZone()
         plycurrzone.taken = true
         PBusiness.NotifySystem(ply, "success", infogiven[1] .. " is now a registered business!")
+        net.Start("PBusinessAddBusinessToClient")
+            net.WriteTable(PBusiness.Businesses)
+        net.Broadcast()
     elseif ply:getDarkRPVar("money") < ply:GetCurrentZone().BuildCost + PBusiness.Config.PaymentToStartBusiness then
         PBusiness.NotifySystem(ply, "error", "You do not have enough money to start this business!")
     end
@@ -176,6 +189,23 @@ net.Receive("PBusinessBusinessChange",function(len, ply)
             end
         end
     end
+end)
+
+net.Receive("PBMailCompose",function(len, ply)
+    -- Coming soon
+end)
+
+-- Gotta finish
+net.Receive("PBusinessSubmitApplication",function(len, ply)
+    local bid = net.ReadFloat()
+    local newappdata = net.ReadTable()
+--    if !ply:HasBusiness() then
+        for k, v in pairs(PBusiness.Businesses) do
+            if bid == v.id and #v.application >= 1 or #v.application[1] >= 1 then
+                table.insert(v.applications,#v.applications + 1,newappdata)
+            end
+        end
+--    end
 end)
 
 concommand.Add("testbtable",function(ply)

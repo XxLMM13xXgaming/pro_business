@@ -1,5 +1,6 @@
 if (SERVER) then
     PBusiness = {}
+    PBMail = {}
     PBusiness.Config = {}
     PBusiness.Players = {} 
     PBusiness.Businesses = {}

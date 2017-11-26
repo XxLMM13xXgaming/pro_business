@@ -37,11 +37,14 @@ end
 
 net.Receive("PBusinessEditApplication",function(len, ply)
 	local thenewapp = net.ReadTable()
-	if ply:HasBusiness() then
+	if ply:HasBusiness() and ply:IsBusinessCEO() then
 		ply:GetCEODesk().PBusinessApplication = thenewapp
 		net.Start("PBusinessSendCEODeskData")
 			net.WriteTable(ply:GetCEODesk().PBusinessApplication)
 		net.Send(ply)
+		table.Empty( ply:GetBusinessInfo().application )
+		table.insert(ply:GetBusinessInfo().application,1,thenewapp)
+		PBusinessUpdateBusinesses()
 	end
 end)
 
