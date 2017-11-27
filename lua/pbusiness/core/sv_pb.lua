@@ -111,6 +111,50 @@ function PBusinessUpdateBusinesses()
     net.Broadcast()
 end
 
+function plymeta:PBusinessShipApplication(tbid, theapplication)
+    local thebusiness = nil
+    local infotoship = {}
+    for bid, bv in pairs(PBusiness.Businesses) do
+        if bv.id == tbid then
+            thebusiness = bv
+        end
+    end
+
+    for k, v in pairs(theapplication) do
+        if v[1] == "ste" then
+            table.insert(infotoship,#infotoship + 1, {"Short answer responce", "Question: " .. v[2], "Responce: " .. v.shortAnswer})
+        elseif v[1] == "lte" then
+            table.insert(infotoship,#infotoship + 1, {"Long answer responce", "Question: " .. v[2], "Responce: " .. v.longAnswer})
+        elseif v[1] == "mc" then
+            PrintTable(v)
+            if v.option1Chk then
+                responce = v.option1ChkOp
+            elseif v.option2Chk then
+                responce = v.option2ChkOp
+            elseif v.option3Chk then
+                responce = v.option3ChkOp
+            elseif v.option4Chk then
+                responce = v.option4ChkOp
+            end
+            if thebusiness.application[1][k][7] == 1 then
+                theca =  3
+            elseif thebusiness.application[1][k][7] == 2 then
+                theca =  4
+            elseif thebusiness.application[1][k][7] == 3 then
+                theca =  5
+            elseif thebusiness.application[1][k][7] == 4 then
+                theca =  6
+            end
+            table.insert(infotoship,#infotoship + 1, {"Multi choice responce", "Question: " .. v[2], "Responce: " .. responce, "Correct answer: " .. thebusiness.application[1][k][theca], responce == thebusiness.application[1][k][theca]})
+        end
+    end
+    table.insert(thebusiness.applications,#thebusiness.applications + 1,{self, infotoship})
+    net.Start("PBusinessSendCEODeskData")
+        net.WriteTable(thebusiness.application)
+        net.WriteTable(thebusiness.applications)
+    net.Send(thebusiness.employees[1].player)
+end
+
 hook.Add("PlayerSay","PBusinessPlayerSay",function(ply, text)
     if text:lower():match("[!/:.]createbusiness") then
         if !ply:HasBusiness() then
@@ -152,7 +196,6 @@ hook.Add("PlayerSay","PBusinessPlayerSay",function(ply, text)
 --            PBusiness.NotifySystem(ply, "error", "You already have a job!")
 --        else
             net.Start("PBusinessOpenJobSearch")
-                -- coming soon todo
             net.Send(ply)
 --        end
         return ''
@@ -202,12 +245,12 @@ net.Receive("PBusinessSubmitApplication",function(len, ply)
 --    if !ply:HasBusiness() then
         for k, v in pairs(PBusiness.Businesses) do
             if bid == v.id and #v.application >= 1 or #v.application[1] >= 1 then
-                table.insert(v.applications,#v.applications + 1,newappdata)
+                ply:PBusinessShipApplication(bid, newappdata)
             end
         end
 --    end
 end)
 
 concommand.Add("testbtable",function(ply)
-    PrintTable(ply:GetBusinessInfo())
+    PrintTable(PBusiness.Businesses)
 end)

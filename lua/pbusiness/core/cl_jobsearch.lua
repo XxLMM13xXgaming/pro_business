@@ -70,10 +70,10 @@ function PBusinessOpenApplication(bid)
                 draw.SimpleText(v[2], "PBusinessLabelFont",10,10,Color( 0, 0, 0, 255 ),TEXT_ALIGN_LEFT,TEXT_ALIGN_TOP)
             end
 
-            local shortAnswer = vgui.Create("DTextEntry", ApplicationQuestion)
-            shortAnswer:SetPos(10, 30)
-            shortAnswer:SetSize(ApplicationQuestion:GetWide() - 20, 20)
-            shortAnswer:SetValue("Answer")
+            v.shortAnswer = vgui.Create("DTextEntry", ApplicationQuestion)
+            v.shortAnswer:SetPos(10, 30)
+            v.shortAnswer:SetSize(ApplicationQuestion:GetWide() - 20, 20)
+            v.shortAnswer:SetValue("Answer")
 
             Application:AddItem(ApplicationQuestion)
         elseif v[1] == "lte" then
@@ -86,11 +86,11 @@ function PBusinessOpenApplication(bid)
                 draw.SimpleText(v[2], "PBusinessLabelFont",10,10,Color( 0, 0, 0, 255 ),TEXT_ALIGN_LEFT,TEXT_ALIGN_TOP)
             end
 
-            local shortAnswer = vgui.Create("DTextEntry", ApplicationQuestion)
-            shortAnswer:SetPos(10, 30)
-            shortAnswer:SetSize(ApplicationQuestion:GetWide() - 20, 40)
-            shortAnswer:SetMultiline(true)
-            shortAnswer:SetValue("Answer")
+            v.longAnswer = vgui.Create("DTextEntry", ApplicationQuestion)
+            v.longAnswer:SetPos(10, 30)
+            v.longAnswer:SetSize(ApplicationQuestion:GetWide() - 20, 40)
+            v.longAnswer:SetMultiline(true)
+            v.longAnswer:SetValue("Answer")
 
             Application:AddItem(ApplicationQuestion)
         elseif v[1] == "mc" then
@@ -109,6 +109,11 @@ function PBusinessOpenApplication(bid)
             option3 = PBMathRand(1, 4, {option1, option2})
             option4 = PBMathRand(1, 4, {option1, option2, option3})
 
+            local toption1 = fourAnswers[option1]
+            local toption2 = fourAnswers[option2]
+            local toption3 = fourAnswers[option3]
+            local toption4 = fourAnswers[option4]
+
             local ApplicationQuestion = vgui.Create("DFrame")
             ApplicationQuestion:SetSize(Application:GetWide(), 115)
             ApplicationQuestion:ShowCloseButton(false)
@@ -117,10 +122,10 @@ function PBusinessOpenApplication(bid)
                 draw.RoundedBox(0,0,0,w,h,Color(45,45,45,150))
                 draw.SimpleText(v[2], "PBusinessLabelFont",10,10,Color( 0, 0, 0, 255 ),TEXT_ALIGN_LEFT,TEXT_ALIGN_TOP)
 
-                draw.SimpleText(fourAnswers[option1], "PBusinessLabelFont",30,30,Color( 0, 0, 0, 255 ),TEXT_ALIGN_LEFT,TEXT_ALIGN_TOP)
-                draw.SimpleText(fourAnswers[option2], "PBusinessLabelFont",30,50,Color( 0, 0, 0, 255 ),TEXT_ALIGN_LEFT,TEXT_ALIGN_TOP)
-                draw.SimpleText(fourAnswers[option3], "PBusinessLabelFont",30,70,Color( 0, 0, 0, 255 ),TEXT_ALIGN_LEFT,TEXT_ALIGN_TOP)
-                draw.SimpleText(fourAnswers[option4], "PBusinessLabelFont",30,90,Color( 0, 0, 0, 255 ),TEXT_ALIGN_LEFT,TEXT_ALIGN_TOP)
+                draw.SimpleText(toption1, "PBusinessLabelFont",30,30,Color( 0, 0, 0, 255 ),TEXT_ALIGN_LEFT,TEXT_ALIGN_TOP)
+                draw.SimpleText(toption2, "PBusinessLabelFont",30,50,Color( 0, 0, 0, 255 ),TEXT_ALIGN_LEFT,TEXT_ALIGN_TOP)
+                draw.SimpleText(toption3, "PBusinessLabelFont",30,70,Color( 0, 0, 0, 255 ),TEXT_ALIGN_LEFT,TEXT_ALIGN_TOP)
+                draw.SimpleText(toption4, "PBusinessLabelFont",30,90,Color( 0, 0, 0, 255 ),TEXT_ALIGN_LEFT,TEXT_ALIGN_TOP)
             end
 
             v.option1Chk = vgui.Create( "DCheckBox", ApplicationQuestion )
@@ -134,6 +139,7 @@ function PBusinessOpenApplication(bid)
                     v.option4Chk:SetChecked(false)
                 end
             end
+            v.option1ChkOp = toption1
 
             v.option2Chk = vgui.Create( "DCheckBox", ApplicationQuestion )
             v.option2Chk:SetPos( 10, 50 )
@@ -146,6 +152,7 @@ function PBusinessOpenApplication(bid)
                     v.option4Chk:SetChecked(false)
                 end
             end
+            v.option2ChkOp = toption2
 
             v.option3Chk = vgui.Create( "DCheckBox", ApplicationQuestion )
             v.option3Chk:SetPos( 10, 70 )
@@ -158,6 +165,7 @@ function PBusinessOpenApplication(bid)
                     v.option4Chk:SetChecked(false)
                 end
             end
+            v.option3ChkOp = toption3
 
             v.option4Chk = vgui.Create( "DCheckBox", ApplicationQuestion )
             v.option4Chk:SetPos( 10, 90 )
@@ -170,6 +178,7 @@ function PBusinessOpenApplication(bid)
                     v.option3Chk:SetChecked(false)
                 end
             end
+            v.option4ChkOp = toption4
 
             Application:AddItem(ApplicationQuestion)
         end
@@ -181,7 +190,11 @@ function PBusinessOpenApplication(bid)
     submitApp:SetText("Submit application")
     submitApp.DoClick = function()
         for k, v in pairs(thebussiness.application[1]) do
-            if v[1] == "mc" then
+            if v[1] == "ste" then
+                v.shortAnswer = v.shortAnswer:GetValue()
+            elseif v[1] == "lte" then
+                v.longAnswer = v.longAnswer:GetValue()
+            elseif v[1] == "mc" then
                 v.option1Chk = v.option1Chk:GetChecked()
                 v.option2Chk = v.option2Chk:GetChecked()
                 v.option3Chk = v.option3Chk:GetChecked()
@@ -197,6 +210,7 @@ function PBusinessOpenApplication(bid)
             net.WriteFloat(bid)
             net.WriteTable(thebussiness.application[1])
         net.SendToServer()
+        DFrame:Close()
     end
 end
 

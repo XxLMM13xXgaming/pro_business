@@ -323,9 +323,38 @@ function entmeta:PBusinessBuildTableTopDerma(personal)
 			AppList:AddColumn( "Applicant Name" )
 			AppList:AddColumn( "Job Compatibility" )
 			AppList:AddColumn( "Application Date" )
---			for k, v in pairs() do
---				AppList:AddLine( "PesterChum", "2mb" )
---			end
+
+			PrintTable(LocalPlayer().PBusinessApplications)
+			for k, v in pairs(LocalPlayer().PBusinessApplications) do
+				local numofmc = 0
+				local numofright = 0
+				for k2, v2 in pairs(v[2]) do
+					if v2[1] == "Multi choice responce" then
+						numofmc = numofmc + 1
+						if v2[5] then
+							numofright = numofright + 1
+						end
+					end
+				end
+
+				AppList:AddLine( v[1]:Nick(), numofright / numofmc * 100 .. "%", "Today" )
+			end
+
+			local ViewAppsP = vgui.Create("DButton", DFrame)
+			ViewAppsP:SetPos(20, DFrame:GetTall() - 95)
+--			ViewAppsP:SetSize(300, 20)
+			ViewAppsP:SetText("Click here to view job applications closly!")
+			ViewAppsP:SetTextColor(Color(0,0,0))
+			ViewAppsP.Paint = function( s, w, h )
+				s:SetFont("PBusinessLabelFont")
+			end
+			timer.Simple(.1,function()
+				ViewAppsP:SizeToContents()
+			end)
+			ViewAppsP.DoClick = function()
+				LocalPlayer():ChatPrint("Coming soon.....")
+				-- Popup apps
+			end
 		end
 
 		local backMat = Material("icon16/arrow_left.png")
@@ -523,5 +552,7 @@ end
 
 net.Receive("PBusinessSendCEODeskData",function()
 	local application = net.ReadTable()
+	local applications = net.ReadTable()
 	LocalPlayer().PBusinessApplication = application
+	LocalPlayer().PBusinessApplications = applications
 end)
