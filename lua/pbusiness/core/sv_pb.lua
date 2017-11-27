@@ -5,6 +5,8 @@ util.AddNetworkString("PBusinessCreateBusiness")
 util.AddNetworkString("PBusinessOpenBusinessMenu")
 util.AddNetworkString("PBusinessOpenCEOMenu")
 util.AddNetworkString("PBusinessBusinessChange")
+util.AddNetworkString("PBusinessTypeChangeToSales")
+util.AddNetworkString("PBusinessTypeChangeToService")
 util.AddNetworkString("PBusinessOpenJobSearch")
 util.AddNetworkString("PBusinessAddBusinessToClient")
 util.AddNetworkString("PBusinessUpdateBusinessToClient")
@@ -228,6 +230,32 @@ net.Receive("PBusinessBusinessChange",function(len, ply)
                 if v.player == ply and v.rank == "CEO" then
                     bv.bname = newname
                     ply:GetCEODesk():SetPBusinessName(newname)
+                end
+            end
+        end
+    end
+end)
+
+net.Receive("PBusinessTypeChangeToSales",function(len, ply)
+    if ply:HasBusiness() and ply:IsBusinessCEO() then
+        for bid, bv in pairs(PBusiness.Businesses) do
+            for k, v in pairs(bv.employees) do
+                if v.player == ply and v.rank == "CEO" then
+                    bv.btype = "Sales"
+                    ply:GetCEODesk():SetPBusinessType("Sales")
+                end
+            end
+        end
+    end
+end)
+
+net.Receive("PBusinessTypeChangeToService",function(len, ply)
+    if ply:HasBusiness() and ply:IsBusinessCEO() then
+        for bid, bv in pairs(PBusiness.Businesses) do
+            for k, v in pairs(bv.employees) do
+                if v.player == ply and v.rank == "CEO" then
+                    bv.btype = "Service"
+                    ply:GetCEODesk():SetPBusinessType("Service")
                 end
             end
         end

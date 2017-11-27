@@ -19,6 +19,7 @@ function ENT:Initialize()
 	if self:Getowning_ent():HasBusiness() then
 		local businessinfo = self:Getowning_ent():GetBusinessInfo()
 		self:SetPBusinessName(businessinfo.bname)
+		self:SetPBusinessType(businessinfo.btype)
 		self.PBusinessApplication = businessinfo.application
 		self.PBusinessApplications = businessinfo.applications
 		net.Start("PBusinessSendCEODeskData")
